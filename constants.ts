@@ -53,12 +53,15 @@ export const INITIAL_DATA: NewsletterData = {
     {
       id: 'sec_ek_1',
       type: 'entertainmentKit',
-      content: [
-        { id: 'ek1', label: "EXCLUSIVE SPORTS CLUB", sublabel: "View and download schedule", iconType: 'sports', url: "#" },
-        { id: 'ek2', label: "RIXY KIDS CLUB", sublabel: "View and download weekly program", iconType: 'kids', url: "#" },
-        { id: 'ek3', label: "SPORTS MATCHES", sublabel: "View and download program", iconType: 'matches', url: "#" },
-        { id: 'ek4', label: "LIVE ENTERTAINMENT", sublabel: "View and download program", iconType: 'live', url: "#" }
-      ]
+      content: {
+        bannerImageUrl: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&q=80&w=1200",
+        items: [
+          { id: 'ek1', label: "EXCLUSIVE SPORTS CLUB", sublabel: "View and download schedule", iconUrl: 'https://cdn-icons-png.flaticon.com/512/1041/1041844.png', url: "#" },
+          { id: 'ek2', label: "RIXY KIDS CLUB", sublabel: "View and download weekly program", iconUrl: 'https://cdn-icons-png.flaticon.com/512/3082/3082042.png', url: "#" },
+          { id: 'ek3', label: "SPORTS MATCHES", sublabel: "View and download program", iconUrl: 'https://cdn-icons-png.flaticon.com/512/1165/1165187.png', url: "#" },
+          { id: 'ek4', label: "LIVE ENTERTAINMENT", sublabel: "View and download program", iconUrl: 'https://cdn-icons-png.flaticon.com/512/3233/3233514.png', url: "#" }
+        ]
+      }
     },
     {
       id: 'sec_ss_1',
@@ -82,5 +85,14 @@ export const INITIAL_DATA: NewsletterData = {
         footerText: "100% of proceeds will be directed to Dubai Cares to support the organization's 'Adopt a School' initiative in Malawi. For enquiries, please contact ozgul.aktolga@rixos.com"
       }
     }
-  ]
+  ],
+  footer: {
+    connectLabel: "CONNECT",
+    socialLinks: [
+      { id: 'sl1', iconUrl: "https://cdn-icons-png.flaticon.com/512/174/174855.png", url: "#" },
+      { id: 'sl2', iconUrl: "https://cdn-icons-png.flaticon.com/512/733/733547.png", url: "#" },
+      { id: 'sl3', iconUrl: "https://cdn-icons-png.flaticon.com/512/3536/3536505.png", url: "#" }
+    ],
+    copyrightText: "© 2025 RIXOS Premium Saadiyat Island"
+  }
 };

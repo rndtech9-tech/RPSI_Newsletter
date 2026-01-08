@@ -40,7 +40,7 @@ const App: React.FC = () => {
 
         const remoteData = response.data?.data as NewsletterData | undefined;
         
-        if (remoteData?.sections && remoteData.sections.length > 0) {
+        if (remoteData?.sections) {
           setData(remoteData);
         } else if (response.error) {
           console.error("Supabase fetch error:", response.error.message);
@@ -125,28 +125,19 @@ const App: React.FC = () => {
 
   return (
     <div className="relative font-sans text-gray-900 overflow-x-hidden min-h-screen bg-white">
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-[#002147]/95 backdrop-blur-xl text-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] p-1.5 flex items-center border border-[#C5A059]/30">
-        <button 
-          onClick={() => setView('guest')}
-          className={`px-8 py-2.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500 ${view === 'guest' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
-        >
-          Guest Experience
-        </button>
-        <button 
-          onClick={() => setView('admin')}
-          className={`px-8 py-2.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500 ${view === 'admin' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
-        >
-          Admin CMS
-        </button>
-      </div>
-
       <main className="w-full">
         {view === 'guest' ? (
-          <GuestPortal data={data} />
+          <GuestPortal data={data} onSwitchView={setView} />
         ) : (
           !isAdminAuthenticated ? (
             <div className="h-screen flex items-center justify-center bg-gray-50 px-6">
-              <div className="w-full max-w-md bg-white p-12 rounded-[3rem] shadow-2xl border border-gray-100 text-center animate-scroll-up">
+              <div className="w-full max-w-md bg-white p-12 rounded-[3rem] shadow-2xl border border-gray-100 text-center animate-scroll-up relative">
+                <button 
+                  onClick={() => setView('guest')}
+                  className="absolute top-8 right-8 text-[9px] font-black tracking-[0.2em] text-gray-300 uppercase hover:text-navy transition-colors"
+                >
+                  Cancel
+                </button>
                 <div className="w-20 h-20 bg-[#002147] mx-auto mb-10 rounded-full flex items-center justify-center shadow-xl">
                    <div className="w-8 h-8 border-2 border-[#C5A059] rounded-full animate-pulse"></div>
                 </div>
@@ -174,7 +165,7 @@ const App: React.FC = () => {
                   SYNCING TO CLOUD
                 </div>
               )}
-              <AdminPortal data={data} onUpdate={handleUpdate} onLogout={handleLogout} />
+              <AdminPortal data={data} onUpdate={handleUpdate} onLogout={handleLogout} onSwitchView={setView} />
             </div>
           )
         )}

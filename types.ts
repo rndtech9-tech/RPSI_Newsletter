@@ -32,8 +32,20 @@ export interface EntertainmentKitItem {
   id: string;
   label: string;
   sublabel: string;
-  iconType: 'sports' | 'kids' | 'matches' | 'live';
+  iconUrl: string;
   url: string;
+}
+
+export interface SocialLink {
+  id: string;
+  iconUrl: string;
+  url: string;
+}
+
+export interface FooterData {
+  connectLabel: string;
+  socialLinks: SocialLink[];
+  copyrightText: string;
 }
 
 export type SectionType = 
@@ -53,6 +65,7 @@ export interface SectionInstance {
 
 export interface NewsletterData {
   sections: SectionInstance[];
+  footer: FooterData;
 }
 
 export type PortalView = 'guest' | 'admin';
