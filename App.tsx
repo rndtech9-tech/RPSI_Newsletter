@@ -40,13 +40,16 @@ const App: React.FC = () => {
 
         const remoteData = response.data?.data as NewsletterData | undefined;
         
-        if (remoteData?.sections) {
+        // Ensure remote data has the required structure before committing to state
+        if (remoteData && Array.isArray(remoteData.sections)) {
           setData(remoteData);
         } else if (response.error) {
           console.error("Supabase fetch error:", response.error.message);
+        } else {
+          console.log("No valid remote data found, staying with local initial data.");
         }
       } catch (err) {
-        console.warn("Connection to cloud failed, using local fallback.");
+        console.warn("Connection to cloud failed, using local fallback.", err);
       } finally {
         setLoading(false);
       }
@@ -63,7 +66,7 @@ const App: React.FC = () => {
           (payload) => {
             console.log("Cloud Update Received");
             const newData = payload.new?.data as NewsletterData | undefined;
-            if (newData?.sections) {
+            if (newData && Array.isArray(newData.sections)) {
               setData(newData);
             }
           }
@@ -118,7 +121,7 @@ const App: React.FC = () => {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#002147] text-white">
         <div className="font-serif italic text-4xl mb-4 animate-pulse">rixos</div>
-        <div className="w-12 h-[1px] bg-[#C5A059] animate-width"></div>
+        <div className="w-12 h-[1px] bg-[#C5A059] transition-all duration-1000"></div>
       </div>
     );
   }

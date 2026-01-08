@@ -15,7 +15,17 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Defensive check to prevent crashing if data is missing
+  if (!data || !data.sections) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-navy text-white">
+        <p className="font-serif italic animate-pulse">Initializing experience...</p>
+      </div>
+    );
+  }
+
   const renderSection = (section: SectionInstance) => {
+    if (!section || !section.content) return null;
     const { id, type, content } = section;
 
     switch (type) {
@@ -50,6 +60,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
         );
 
       case 'quickLinks':
+        if (!Array.isArray(content)) return null;
         return (
           <div key={id} className="max-w-7xl mx-auto px-4 md:px-12 mb-20 overflow-x-auto no-scrollbar scroll-smooth">
             <div className="flex flex-row items-center gap-6 md:gap-10 min-w-max py-8 md:py-12 px-6 md:px-0 pr-20 md:pr-32">
@@ -68,6 +79,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
         );
 
       case 'featureCards':
+        if (!Array.isArray(content)) return null;
         return (
           <div key={id} className="w-full mb-20">
             <div className="max-w-7xl mx-auto px-4 md:px-12 overflow-x-auto no-scrollbar scroll-smooth">
@@ -129,6 +141,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
         );
 
       case 'sportsSchedule':
+        if (!Array.isArray(content)) return null;
         return (
           <section key={id} className="w-full mb-20 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 md:px-12 mb-6">
@@ -157,7 +170,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                       </div>
                       <div className="flex flex-col items-center flex-1 gap-2">
                          <img src={match.logoB || 'https://picsum.photos/41/41'} alt={match.teamB} className="w-10 h-10 object-contain drop-shadow-sm" />
-                         <span className="text-[9px] font-bold text-navy text-center uppercase tracking-tight max-w-[80px] leading-tight">{match.teamB}</span>
+                         <span className="text-[9px] font-bold text-navy text-center uppercase tracking-tight max-w-[80px] background-tight leading-tight">{match.teamB}</span>
                       </div>
                     </div>
 
@@ -215,23 +228,25 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
     }
   };
 
-  const { footer } = data;
+  const footer = data.footer || { connectLabel: 'CONNECT', socialLinks: [], copyrightText: '© 2025 RIXOS' };
 
   return (
     <div className="w-full bg-white shadow-2xl min-h-screen pb-20 overflow-x-hidden">
       <div className="bg-navy text-white">
-        <div className="max-w-7xl mx-auto flex justify-between items-center py-6 px-6 md:px-12">
-           <div className="text-[10px] md:text-xs tracking-[0.3em] font-light opacity-80 uppercase leading-none">Rixos Premium Saadiyat Island</div>
+        <div className="max-w-7xl mx-auto flex justify-end items-center py-6 px-6 md:px-12 h-16 md:h-24">
            <a 
             href="https://www.rixos.com/hotel-resort/rixos-premium-saadiyat-island" 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="h-6 md:h-10 flex items-center justify-center transition-transform hover:scale-110"
+            className="h-8 md:h-12 flex items-center justify-center transition-transform hover:scale-110"
            >
              <img 
-               src="https://static.wixstatic.com/shapes/31813a_2928f300b32746d08f4e2ba5ce2e989d.svg" 
+               src="Diamond_white.png" 
                alt="Rixos Diamond" 
                className="h-full w-auto object-contain" 
+               onError={(e) => {
+                 (e.target as HTMLImageElement).src = "https://static.wixstatic.com/shapes/31813a_2928f300b32746d08f4e2ba5ce2e989d.svg";
+               }}
              />
            </a>
         </div>
@@ -246,7 +261,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
           <h4 className="text-navy font-bold tracking-[0.4em] uppercase text-xs mb-10">{footer.connectLabel}</h4>
           
           <div className="flex justify-center items-center gap-6 mb-16">
-            {footer.socialLinks.map((sl) => (
+            {footer.socialLinks && footer.socialLinks.map((sl) => (
               <a 
                 key={sl.id} 
                 href={sl.url} 
