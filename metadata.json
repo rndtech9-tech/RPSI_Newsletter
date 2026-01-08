@@ -1,0 +1,7 @@
+{
+  "name": "Rixos Premium Saadiyat Digital Newsletter",
+  "description": "A luxury, mobile-first digital guest experience and admin dashboard for Rixos Premium Saadiyat Island.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

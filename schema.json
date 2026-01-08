@@ -1,0 +1,69 @@
+
+{
+  "newsletter": {
+    "sections": {
+      "hero": {
+        "title": "string",
+        "subtitle": "string",
+        "bgImage": "string (url)"
+      },
+      "welcome": {
+        "text": "string"
+      },
+      "quickLinks": [
+        {
+          "id": "uuid",
+          "label": "string",
+          "url": "string (url)",
+          "imageUrl": "string (url)"
+        }
+      ],
+      "spotlight": {
+        "title": "string",
+        "heading": "string",
+        "description": "text",
+        "imageUrl": "string (url)",
+        "ctaUrl": "string (url)"
+      },
+      "abuDhabi101": {
+        "title": "string",
+        "heading": "string",
+        "description": "text",
+        "imageUrl": "string (url)",
+        "ctaUrl": "string (url)"
+      },
+      "entertainmentKit": [
+        {
+          "id": "uuid",
+          "label": "string",
+          "sublabel": "string",
+          "iconType": "enum(sports|kids|matches|live)",
+          "url": "string (url)"
+        }
+      ],
+      "sportsSchedule": [
+        {
+          "id": "uuid",
+          "date": "string (day)",
+          "month": "string (abbr)",
+          "teamA": "string",
+          "teamB": "string",
+          "league": "string",
+          "time": "string (HH:mm)",
+          "location": "string",
+          "logoA": "string (url)",
+          "logoB": "string (url)"
+        }
+      ],
+      "charity": {
+        "title": "string",
+        "description": "text",
+        "subtext": "string",
+        "imageUrl": "string (url)",
+        "ctaLabel": "string",
+        "ctaUrl": "string (url)",
+        "footerText": "text"
+      }
+    }
+  }
+}
