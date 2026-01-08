@@ -1,24 +1,29 @@
 
-# Supabase Final Setup
+# Supabase Final Setup (Fixed)
 
 Follow these steps to ensure your Vercel deployment works with real-time updates.
 
 ## 1. Database Initialization
-Run this exact script in your Supabase SQL Editor:
+Run this exact script in your Supabase **SQL Editor**:
 
 ```sql
 -- Reset the table structure
 DROP TABLE IF EXISTS newsletter_content;
 
+-- Create table allowing manual ID (required for the app's upsert logic)
 CREATE TABLE newsletter_content (
-  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  id BIGINT PRIMARY KEY,
   data JSONB NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert the single row that the app updates
-INSERT INTO newsletter_content (data) 
-VALUES ('{"sections": []}'); 
+-- IMPORTANT: Disable RLS for this table so the public API key can save data
+-- (Alternatively, you can create an "INSERT/UPDATE" policy for the 'anon' role)
+ALTER TABLE newsletter_content DISABLE ROW LEVEL SECURITY;
+
+-- Insert the single row that the app updates (Must be ID 1)
+INSERT INTO newsletter_content (id, data) 
+VALUES (1, '{"sections": []}'); 
 
 -- Enable Realtime
 ALTER TABLE newsletter_content REPLICA IDENTITY FULL;
@@ -31,10 +36,7 @@ ALTER TABLE newsletter_content REPLICA IDENTITY FULL;
 4. Check the box for `newsletter_content` and save.
 
 ## 3. Vercel Environment Variables
-In your Vercel Project Dashboard (Settings > Environment Variables), add these:
-- `VITE_SUPABASE_URL`: (Found in Supabase Project Settings > API)
-- `VITE_SUPABASE_ANON_KEY`: (Found in Supabase Project Settings > API)
-- `VITE_ADMIN_PASSWORD`: (Your secret password for the admin panel)
-
-## 4. Deployment
-Push your changes to GitHub. Vercel will automatically rebuild the app. Once it finishes, your admin panel will save to the cloud, and guests will see updates instantly.
+Ensure these are in Vercel Settings > Environment Variables:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_ADMIN_PASSWORD`

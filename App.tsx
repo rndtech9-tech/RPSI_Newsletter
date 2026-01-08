@@ -26,6 +26,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!supabase) {
+        console.warn("Supabase client not initialized. Check your environment variables.");
         setLoading(false);
         return;
       }
@@ -37,13 +38,12 @@ const App: React.FC = () => {
           .eq('id', 1)
           .maybeSingle();
 
-        // Using optional chaining (?.) and explicit checks to satisfy TS compiler
         const remoteData = response.data?.data as NewsletterData | undefined;
         
         if (remoteData?.sections && remoteData.sections.length > 0) {
           setData(remoteData);
         } else if (response.error) {
-          console.error("Supabase error:", response.error);
+          console.error("Supabase fetch error:", response.error.message);
         }
       } catch (err) {
         console.warn("Connection to cloud failed, using local fallback.");
@@ -83,11 +83,15 @@ const App: React.FC = () => {
     if (supabase) {
       const { error } = await supabase
         .from('newsletter_content')
-        .upsert({ id: 1, data: newData, updated_at: new Date().toISOString() });
+        .upsert({ 
+          id: 1, 
+          data: newData, 
+          updated_at: new Date().toISOString() 
+        }, { onConflict: 'id' });
         
       if (error) {
-        console.error("Cloud save failed:", error);
-        alert("Cloud sync failed. Check your Supabase connection.");
+        console.error("Cloud save failed detail:", error.message, error.details, error.hint);
+        alert(`Cloud sync failed: ${error.message}. Check your Supabase table setup.`);
       }
     }
     
