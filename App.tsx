@@ -6,9 +6,14 @@ import AdminPortal from './components/AdminPortal';
 import { NewsletterData, PortalView } from './types';
 import { INITIAL_DATA } from './constants';
 
-// Use process.env as per environment configuration and coding guidelines
-const SB_URL = (process.env as any).VITE_SUPABASE_URL || '';
-const SB_KEY = (process.env as any).VITE_SUPABASE_ANON_KEY || '';
+// Helper to get env vars reliably across different build environments (Vite/Vercel/Node)
+const getEnv = (key: string): string => {
+  // Fix: cast import.meta to any to resolve 'Property env does not exist on type ImportMeta'
+  return ((import.meta as any).env?.[key] || (process.env as any)?.[key] || '');
+};
+
+const SB_URL = getEnv('VITE_SUPABASE_URL');
+const SB_KEY = getEnv('VITE_SUPABASE_ANON_KEY');
 const supabase = SB_URL && SB_KEY ? createClient(SB_URL, SB_KEY) : null;
 
 const App: React.FC = () => {
@@ -19,24 +24,24 @@ const App: React.FC = () => {
   const [passwordInput, setPasswordInput] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Fetch initial data & set up Realtime
   useEffect(() => {
     const fetchData = async () => {
       if (supabase) {
-        const { data: dbData, error } = await supabase
-          .from('newsletter_content')
-          .select('data')
-          .eq('id', 1)
-          .single();
+        try {
+          const { data: dbData, error } = await supabase
+            .from('newsletter_content')
+            .select('data')
+            .eq('id', 1)
+            .maybeSingle();
 
-        if (dbData && dbData.data && Object.keys(dbData.data).length > 0) {
-          setData(dbData.data);
-        } else if (error) {
-          console.warn("Supabase fetch error, using local/initial data:", error);
+          if (dbData?.data?.sections?.length > 0) {
+            setData(dbData.data);
+          } else if (error) {
+            console.error("Supabase error:", error);
+          }
+        } catch (err) {
+          console.warn("Connection to cloud failed, using local fallback.");
         }
-      } else {
-        const saved = localStorage.getItem('rixos_newsletter_data');
-        if (saved) setData(JSON.parse(saved));
       }
       setLoading(false);
     };
@@ -51,8 +56,10 @@ const App: React.FC = () => {
           'postgres_changes',
           { event: 'UPDATE', schema: 'public', table: 'newsletter_content', filter: 'id=eq.1' },
           (payload) => {
-            console.log("Real-time update received from Cloud");
-            setData(payload.new.data);
+            console.log("Cloud Update Received");
+            if (payload.new?.data?.sections) {
+              setData(payload.new.data);
+            }
           }
         )
         .subscribe();
@@ -68,14 +75,13 @@ const App: React.FC = () => {
     setData(newData);
     
     if (supabase) {
-      // We use upsert to be safe, ensuring ID 1 is always the target
       const { error } = await supabase
         .from('newsletter_content')
         .upsert({ id: 1, data: newData, updated_at: new Date().toISOString() });
         
       if (error) {
         console.error("Cloud save failed:", error);
-        alert("Cloud sync failed. The database might not be ready.");
+        alert("Cloud sync failed. Check your Supabase connection.");
       }
     }
     
@@ -85,38 +91,38 @@ const App: React.FC = () => {
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Use process.env as per environment standards
-    const correctPassword = (process.env as any).VITE_ADMIN_PASSWORD || 'admin123';
+    const correctPassword = getEnv('VITE_ADMIN_PASSWORD') || 'admin123';
     if (passwordInput === correctPassword) {
       setIsAdminAuthenticated(true);
     } else {
-      alert("Invalid Password");
+      alert("Access Denied: Invalid Credentials");
     }
   };
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[#002147] text-white font-serif italic text-2xl animate-pulse">
-        rixos
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#002147] text-white">
+        <div className="font-serif italic text-4xl mb-4 animate-pulse">rixos</div>
+        <div className="w-12 h-[1px] bg-[#C5A059] animate-width"></div>
       </div>
     );
   }
 
   return (
     <div className="relative font-sans text-gray-900 overflow-x-hidden min-h-screen bg-white">
-      {/* Navigation Switcher */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-[#002147]/90 backdrop-blur-md text-white rounded-full shadow-2xl p-1.5 flex items-center border border-[#C5A059]/40">
+      {/* Dynamic View Toggler */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-[#002147]/95 backdrop-blur-xl text-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] p-1.5 flex items-center border border-[#C5A059]/30">
         <button 
           onClick={() => setView('guest')}
-          className={`px-8 py-2.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 ${view === 'guest' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-white/60 hover:text-white'}`}
+          className={`px-8 py-2.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500 ${view === 'guest' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
         >
-          Guest View
+          Guest Experience
         </button>
         <button 
           onClick={() => setView('admin')}
-          className={`px-8 py-2.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 ${view === 'admin' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-white/60 hover:text-white'}`}
+          className={`px-8 py-2.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500 ${view === 'admin' ? 'bg-[#C5A059] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
         >
-          Admin Panel
+          Admin CMS
         </button>
       </div>
 
@@ -126,39 +132,9 @@ const App: React.FC = () => {
         ) : (
           !isAdminAuthenticated ? (
             <div className="h-screen flex items-center justify-center bg-gray-50 px-6">
-              <form onSubmit={handleAdminLogin} className="w-full max-w-md bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 text-center">
-                <div className="w-16 h-16 bg-[#002147] mx-auto mb-8 rounded-full flex items-center justify-center">
-                   <div className="w-6 h-6 border-2 border-[#C5A059] rounded-full"></div>
+              <div className="w-full max-w-md bg-white p-12 rounded-[3rem] shadow-2xl border border-gray-100 text-center animate-scroll-up">
+                <div className="w-20 h-20 bg-[#002147] mx-auto mb-10 rounded-full flex items-center justify-center shadow-xl">
+                   <div className="w-8 h-8 border-2 border-[#C5A059] rounded-full animate-pulse"></div>
                 </div>
-                <h2 className="text-3xl font-serif text-[#002147] mb-2 italic">Admin Access</h2>
-                <p className="text-xs text-gray-400 font-bold tracking-widest uppercase mb-8">Rixos Premium Saadiyat</p>
-                <input 
-                  type="password" 
-                  placeholder="Enter Password" 
-                  className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl mb-6 text-center focus:outline-none focus:border-[#C5A059] transition-all"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  autoFocus
-                />
-                <button type="submit" className="w-full bg-[#002147] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#C5A059] transition-all">
-                  Authenticate
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className="relative">
-              {isSyncing && (
-                <div className="fixed top-4 right-4 z-[10000] bg-[#C5A059] text-white px-4 py-2 rounded-full text-[10px] font-bold tracking-widest animate-pulse shadow-lg">
-                  SAVING TO CLOUD...
-                </div>
-              )}
-              <AdminPortal data={data} onUpdate={handleUpdate} />
-            </div>
-          )
-        )}
-      </main>
-    </div>
-  );
-};
-
-export default App;
+                <h2 className="text-4xl font-serif text-[#002147] mb-3 italic">Management</h2>
+                <p className="
