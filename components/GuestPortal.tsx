@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { NewsletterData, SectionInstance, QuickLink, FeatureCard, EntertainmentKitItem, SportMatch, PortalView } from '../types';
+import { NewsletterData, SectionInstance, QuickLink, FeatureCard, EntertainmentKitItem, SportMatch, PortalView } from '../types.ts';
 
 interface GuestPortalProps {
   data: NewsletterData;
@@ -15,7 +15,6 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Defensive check to prevent crashing if data is missing
   if (!data || !data.sections) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-navy text-white">
@@ -92,7 +91,14 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                     <h2 className="text-5xl md:text-7xl font-serif italic text-navy mb-4 lowercase tracking-tight leading-none">{card.heading}</h2>
                     <h3 className="text-[9px] font-bold tracking-[0.3em] text-gold mb-8 uppercase">{card.title}</h3>
                     <p className="text-xs md:text-base leading-relaxed text-gray-400 mb-10 font-light max-w-sm px-4">{card.description}</p>
-                    <a href={card.ctaUrl} target="_blank" rel="noopener noreferrer" className="mt-auto inline-block px-10 py-3 border border-gold text-gold rounded-full text-[9px] font-bold tracking-[0.3em] uppercase transition-all hover:bg-gold hover:text-white">Explore More</a>
+                    <a 
+                      href={card.ctaUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="mt-auto inline-block px-12 py-3.5 border border-gold text-gold rounded-full text-[10px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-xl hover:shadow-gold/20"
+                    >
+                      Explore More
+                    </a>
                   </div>
                 ))}
               </div>
@@ -170,7 +176,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                       </div>
                       <div className="flex flex-col items-center flex-1 gap-2">
                          <img src={match.logoB || 'https://picsum.photos/41/41'} alt={match.teamB} className="w-10 h-10 object-contain drop-shadow-sm" />
-                         <span className="text-[9px] font-bold text-navy text-center uppercase tracking-tight max-w-[80px] background-tight leading-tight">{match.teamB}</span>
+                         <span className="text-[9px] font-bold text-navy text-center uppercase tracking-tight max-w-[80px] leading-tight">{match.teamB}</span>
                       </div>
                     </div>
 
@@ -208,7 +214,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                     href={content.ctaUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-max px-12 py-5 bg-gold text-white rounded-full text-[10px] font-bold tracking-[0.3em] uppercase transition-all hover:bg-white hover:text-navy hover:shadow-2xl"
+                    className="w-max px-14 py-5 border border-gold text-gold rounded-full text-[11px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20"
                    >
                     {content.ctaLabel}
                    </a>

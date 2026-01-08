@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import GuestPortal from './components/GuestPortal';
-import AdminPortal from './components/AdminPortal';
-import { NewsletterData, PortalView } from './types';
-import { INITIAL_DATA } from './constants';
+import GuestPortal from './components/GuestPortal.tsx';
+import AdminPortal from './components/AdminPortal.tsx';
+import { NewsletterData, PortalView } from './types.ts';
+import { INITIAL_DATA } from './constants.ts';
 
 // Helper to get env vars reliably
 const getEnv = (key: string): string => {
