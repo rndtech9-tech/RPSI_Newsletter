@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { NewsletterData, SectionInstance, QuickLink, FeatureCard, EntertainmentKitItem, SportMatch, PortalView } from '../types.ts';
+import { NewsletterData, SectionInstance, QuickLink, FeatureCard, EntertainmentKitItem, SportMatch, PortalView } from '../types';
 
 interface GuestPortalProps {
   data: NewsletterData;
@@ -95,7 +95,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                       href={card.ctaUrl} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="mt-auto inline-block px-12 py-3.5 border border-gold text-gold rounded-full text-[10px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-xl hover:shadow-gold/20"
+                      className="mt-auto inline-block px-12 py-4 border border-gold text-gold bg-transparent rounded-full text-[10px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20"
                     >
                       Explore More
                     </a>
@@ -214,7 +214,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                     href={content.ctaUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-max px-14 py-5 border border-gold text-gold rounded-full text-[11px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20"
+                    className="w-max px-14 py-5 border border-gold text-gold bg-transparent rounded-full text-[11px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20"
                    >
                     {content.ctaLabel}
                    </a>

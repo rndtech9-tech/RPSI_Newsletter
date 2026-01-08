@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import GuestPortal from './components/GuestPortal.tsx';
-import AdminPortal from './components/AdminPortal.tsx';
-import { NewsletterData, PortalView } from './types.ts';
-import { INITIAL_DATA } from './constants.ts';
+import GuestPortal from './components/GuestPortal';
+import AdminPortal from './components/AdminPortal';
+import { NewsletterData, PortalView } from './types';
+import { INITIAL_DATA } from './constants';
 
 // Helper to get env vars reliably
 const getEnv = (key: string): string => {
@@ -40,7 +40,6 @@ const App: React.FC = () => {
 
         if (response.data?.data) {
           const remoteData = response.data.data as NewsletterData;
-          // Deep merge with INITIAL_DATA to ensure structure integrity
           setData({
             ...INITIAL_DATA,
             ...remoteData,
