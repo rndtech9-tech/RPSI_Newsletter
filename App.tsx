@@ -6,9 +6,8 @@ import AdminPortal from './components/AdminPortal';
 import { NewsletterData, PortalView } from './types';
 import { INITIAL_DATA } from './constants';
 
-// Helper to get env vars reliably across different build environments (Vite/Vercel/Node)
+// Helper to get env vars reliably
 const getEnv = (key: string): string => {
-  // Fix: cast import.meta to any to resolve 'Property env does not exist on type ImportMeta'
   return ((import.meta as any).env?.[key] || (process.env as any)?.[key] || '');
 };
 
@@ -26,29 +25,35 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (supabase) {
-        try {
-          const { data: dbData, error } = await supabase
-            .from('newsletter_content')
-            .select('data')
-            .eq('id', 1)
-            .maybeSingle();
-
-          if (dbData?.data?.sections?.length > 0) {
-            setData(dbData.data);
-          } else if (error) {
-            console.error("Supabase error:", error);
-          }
-        } catch (err) {
-          console.warn("Connection to cloud failed, using local fallback.");
-        }
+      if (!supabase) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      try {
+        const response = await supabase
+          .from('newsletter_content')
+          .select('data')
+          .eq('id', 1)
+          .maybeSingle();
+
+        // Using optional chaining (?.) and explicit checks to satisfy TS compiler
+        const remoteData = response.data?.data as NewsletterData | undefined;
+        
+        if (remoteData?.sections && remoteData.sections.length > 0) {
+          setData(remoteData);
+        } else if (response.error) {
+          console.error("Supabase error:", response.error);
+        }
+      } catch (err) {
+        console.warn("Connection to cloud failed, using local fallback.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
 
-    // Subscribe to real-time updates
     if (supabase) {
       const channel = supabase
         .channel('newsletter_changes')
@@ -57,8 +62,9 @@ const App: React.FC = () => {
           { event: 'UPDATE', schema: 'public', table: 'newsletter_content', filter: 'id=eq.1' },
           (payload) => {
             console.log("Cloud Update Received");
-            if (payload.new?.data?.sections) {
-              setData(payload.new.data);
+            const newData = payload.new?.data as NewsletterData | undefined;
+            if (newData?.sections) {
+              setData(newData);
             }
           }
         )
@@ -102,8 +108,6 @@ const App: React.FC = () => {
   const handleLogout = () => {
     setIsAdminAuthenticated(false);
     setPasswordInput('');
-    // Optionally switch back to guest view automatically
-    // setView('guest'); 
   };
 
   if (loading) {
@@ -117,7 +121,6 @@ const App: React.FC = () => {
 
   return (
     <div className="relative font-sans text-gray-900 overflow-x-hidden min-h-screen bg-white">
-      {/* Dynamic View Toggler */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-[#002147]/95 backdrop-blur-xl text-white rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] p-1.5 flex items-center border border-[#C5A059]/30">
         <button 
           onClick={() => setView('guest')}
