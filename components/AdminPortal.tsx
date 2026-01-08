@@ -5,9 +5,10 @@ import { NewsletterData, SectionInstance, SectionType, QuickLink, FeatureCard, S
 interface AdminPortalProps {
   data: NewsletterData;
   onUpdate: (newData: NewsletterData) => void;
+  onLogout: () => void;
 }
 
-const AdminPortal: React.FC<AdminPortalProps> = ({ data, onUpdate }) => {
+const AdminPortal: React.FC<AdminPortalProps> = ({ data, onUpdate, onLogout }) => {
   const [localData, setLocalData] = useState<NewsletterData>(data);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
@@ -273,9 +274,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ data, onUpdate }) => {
       <div className="flex justify-between items-center mb-8 border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-navy">Modular CMS</h1>
-          <p className="text-gray-500">Reposition and create portal sections</p>
+          <p className="text-gray-500 text-xs uppercase tracking-widest font-bold">Portal Content Management</p>
         </div>
-        <button onClick={handleSave} className="bg-gold text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:opacity-90">Save All</button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onLogout} 
+            className="px-6 py-3 rounded-lg font-bold text-navy border border-navy/20 hover:bg-navy hover:text-white transition-all text-xs tracking-widest uppercase"
+          >
+            Logout
+          </button>
+          <button 
+            onClick={handleSave} 
+            className="bg-gold text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:opacity-90 text-xs tracking-widest uppercase"
+          >
+            Save All
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4">

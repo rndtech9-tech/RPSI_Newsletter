@@ -99,6 +99,13 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    setIsAdminAuthenticated(false);
+    setPasswordInput('');
+    // Optionally switch back to guest view automatically
+    // setView('guest'); 
+  };
+
   if (loading) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#002147] text-white">
@@ -137,4 +144,36 @@ const App: React.FC = () => {
                    <div className="w-8 h-8 border-2 border-[#C5A059] rounded-full animate-pulse"></div>
                 </div>
                 <h2 className="text-4xl font-serif text-[#002147] mb-3 italic">Management</h2>
-                <p className="
+                <p className="text-[10px] text-gray-400 font-black tracking-[0.3em] uppercase mb-10">Secure Access Portal</p>
+                <form onSubmit={handleAdminLogin}>
+                  <input 
+                    type="password" 
+                    placeholder="Security Key" 
+                    className="w-full p-5 bg-gray-50 border border-gray-200 rounded-2xl mb-6 text-center focus:outline-none focus:ring-2 focus:ring-[#C5A059]/20 focus:border-[#C5A059] transition-all"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    autoFocus
+                  />
+                  <button type="submit" className="w-full bg-[#002147] text-white py-5 rounded-2xl font-bold tracking-[0.2em] uppercase hover:bg-[#C5A059] hover:shadow-xl transition-all duration-300">
+                    Authenticate
+                  </button>
+                </form>
+              </div>
+            </div>
+          ) : (
+            <div className="relative animate-scroll-up">
+              {isSyncing && (
+                <div className="fixed top-6 right-6 z-[10000] bg-[#C5A059] text-white px-6 py-3 rounded-full text-[10px] font-black tracking-[0.2em] animate-pulse shadow-2xl border border-white/20">
+                  SYNCING TO CLOUD
+                </div>
+              )}
+              <AdminPortal data={data} onUpdate={handleUpdate} onLogout={handleLogout} />
+            </div>
+          )
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default App;
