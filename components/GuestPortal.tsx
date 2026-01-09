@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { NewsletterData, SectionInstance, QuickLink, FeatureCard, EntertainmentKitItem, SportMatch, PortalView, WidgetCard } from '../types';
 
 interface GuestPortalProps {
@@ -10,7 +10,6 @@ interface GuestPortalProps {
 const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showWidget, setShowWidget] = useState(false);
-  const [activeCards, setActiveCards] = useState<WidgetCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   
@@ -19,7 +18,18 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Prevent background scrolling and touch interactions when widget is active
+  // Filter active cards once per data change for performance
+  const activeCards = useMemo(() => {
+    if (!data.widgetCards) return [];
+    const now = new Date();
+    return data.widgetCards.filter(card => {
+      if (!card.isActive) return false;
+      const start = new Date(card.startTime);
+      const end = new Date(card.endTime);
+      return now >= start && now <= end;
+    });
+  }, [data.widgetCards]);
+
   useEffect(() => {
     if (showWidget) {
       document.body.style.overflow = 'hidden';
@@ -33,19 +43,6 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
       document.body.style.touchAction = '';
     };
   }, [showWidget]);
-
-  useEffect(() => {
-    if (data.widgetCards) {
-      const now = new Date();
-      const filtered = data.widgetCards.filter(card => {
-        if (!card.isActive) return false;
-        const start = new Date(card.startTime);
-        const end = new Date(card.endTime);
-        return now >= start && now <= end;
-      });
-      setActiveCards(filtered);
-    }
-  }, [data.widgetCards]);
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -64,7 +61,6 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
   };
 
   const handleFlip = () => {
-    // Only flip if it's not the "All Caught Up" card
     if (currentIndex < activeCards.length) {
       setIsFlipped(!isFlipped);
     }
@@ -121,10 +117,10 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
               {content.map((link: QuickLink) => (
                 <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="relative group flex items-center bg-white/40 backdrop-blur-xl border border-white/50 rounded-[1.5rem] md:rounded-full h-20 md:h-32 w-[280px] md:w-[320px] overflow-visible shadow-[0_8px_32px_rgba(0,46,66,0.08)] transition-all duration-500 hover:scale-[1.03]">
                   <div className="pl-6 md:pl-10 pr-28 md:pr-40 z-10">
-                    <span className="text-[9px] md:text-[13px] font-black tracking-[0.18em] text-[#042e42] uppercase leading-snug group-hover:text-gold transition-colors block">{link.label}</span>
+                    <span className="text-[9px] md:text-[13px] font-black tracking-[0.18em] text-navy uppercase leading-snug group-hover:text-gold transition-colors block">{link.label}</span>
                   </div>
                   <div className="absolute right-[-6px] md:right-[-12px] top-[-12px] md:top-[-18px] bottom-[-12px] md:bottom-[-18px] w-24 md:w-36 z-20 overflow-hidden rounded-2xl md:rounded-3xl border-[3px] md:border-[5px] border-white shadow-[0_15px_35px_rgba(0,0,0,0.2)]">
-                    <img src={link.imageUrl} alt={link.label} className="w-full h-full object-cover" />
+                    <img src={link.imageUrl} alt={link.label} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 </a>
               ))}
@@ -141,7 +137,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                 {content.map((card: FeatureCard) => (
                   <div key={card.id} className="w-[320px] md:w-[500px] bg-white p-6 md:p-12 rounded-[3rem] shadow-[0_35px_80px_-15px_rgba(0,46,66,0.12)] flex flex-col items-center text-center border border-gray-50 flex-shrink-0">
                     <div className="w-full aspect-[4/3] rounded-[2rem] overflow-hidden mb-8 shadow-inner">
-                      <img src={card.imageUrl} alt={card.heading} className="w-full h-full object-cover" />
+                      <img src={card.imageUrl} alt={card.heading} className="w-full h-full object-cover" loading="lazy" />
                     </div>
                     <h2 className="text-3xl md:text-5xl font-serif italic text-navy mb-4 lowercase tracking-tight leading-none whitespace-nowrap">{card.heading}</h2>
                     <h3 className="text-[9px] font-bold tracking-[0.3em] text-gold mb-8 uppercase">{card.title}</h3>
@@ -170,7 +166,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
             {bannerUrl && (
               <div className="max-w-7xl mx-auto px-6 mb-8">
                 <div className="w-full aspect-[21/9] md:aspect-[4/1] rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-xl border border-gray-100">
-                   <img src={bannerUrl} alt="Experience" className="w-full h-full object-cover" />
+                   <img src={bannerUrl} alt="Experience" className="w-full h-full object-cover" loading="lazy" />
                 </div>
               </div>
             )}
@@ -189,6 +185,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                         src={item.iconUrl} 
                         alt="" 
                         className="w-8 h-8 object-contain brightness-0 invert" 
+                        loading="lazy"
                       />
                     ) : (
                       <div className="w-8 h-8 border-2 border-white/20 rounded-full"></div>
@@ -223,14 +220,14 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                     
                     <div className="flex items-center justify-between mb-8 bg-gray-50/50 p-5 rounded-3xl border border-gray-50">
                       <div className="flex flex-col items-center flex-1 gap-2">
-                         <img src={match.logoA || 'https://picsum.photos/40/40'} alt={match.teamA} className="w-10 h-10 object-contain drop-shadow-sm" />
+                         <img src={match.logoA || ''} alt={match.teamA} className="w-10 h-10 object-contain drop-shadow-sm" loading="lazy" />
                          <span className="text-[9px] font-bold text-navy text-center uppercase tracking-tight max-w-[80px] leading-tight">{match.teamA}</span>
                       </div>
                       <div className="flex flex-col items-center px-4">
                          <span className="text-[10px] text-gray-300 font-black italic">VS</span>
                       </div>
                       <div className="flex flex-col items-center flex-1 gap-2">
-                         <img src={match.logoB || 'https://picsum.photos/41/41'} alt={match.teamB} className="w-10 h-10 object-contain drop-shadow-sm" />
+                         <img src={match.logoB || ''} alt={match.teamB} className="w-10 h-10 object-contain drop-shadow-sm" loading="lazy" />
                          <span className="text-[9px] font-bold text-navy text-center uppercase tracking-tight max-w-[80px] leading-tight">{match.teamB}</span>
                       </div>
                     </div>
@@ -254,12 +251,12 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
           <section key={id} className="max-w-7xl mx-auto px-6 mb-32">
             <div className="bg-navy rounded-[3rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl border border-gold/10">
               <div className="lg:w-1/2 relative min-h-[350px]">
-                <img src={content.imageUrl} alt="Info" className="absolute inset-0 w-full h-full object-cover" />
+                <img src={content.imageUrl} alt="Info" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-r from-navy/30 to-transparent"></div>
               </div>
               <div className="lg:w-1/2 p-10 md:p-16 flex flex-col justify-center text-white">
                 {content.headingLogoUrl ? (
-                  <img src={content.headingLogoUrl} alt={content.heading} className="h-10 md:h-14 w-auto object-contain mb-6 opacity-90" />
+                  <img src={content.headingLogoUrl} alt={content.heading} className="h-10 md:h-14 w-auto object-contain mb-6 opacity-90" loading="lazy" />
                 ) : (
                   <h4 className="text-[10px] font-black tracking-[0.5em] text-gold uppercase mb-6">{content.heading}</h4>
                 )}
@@ -298,9 +295,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
   const footer = data.footer || { connectLabel: 'CONNECT', socialLinks: [], copyrightText: '© 2025 RIXOS' };
   const header = data.header || { logoUrl: 'Diamond_white.png', linkUrl: 'https://www.rixos.com/hotel-resort/rixos-premium-saadiyat-island' };
 
-  // Combine active offers with the final "All Caught Up" card
   const stackSize = activeCards.length + 1;
-
   const widgetConfig = data.widgetConfig || { buttonLabel: "WHAT'S ON", buttonIconUrl: "", enableBounce: true };
 
   return (
@@ -330,7 +325,6 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
       {/* Centered Overlay Widget */}
       {showWidget && (
         <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 md:p-10 bg-navy/95 backdrop-blur-3xl animate-in fade-in duration-500">
-          {/* Close button */}
           <button 
             onClick={() => setShowWidget(false)}
             className="absolute top-6 right-6 text-white/40 text-2xl hover:text-white transition-colors p-4 z-[250]"
@@ -338,31 +332,24 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
             ✕
           </button>
 
-          {/* Navigation tap zones for left/right switching */}
           <div 
             className="absolute inset-y-0 left-0 w-1/4 z-[240] cursor-pointer" 
             onClick={handlePrev}
-            title="Previous"
           ></div>
           <div 
             className="absolute inset-y-0 right-0 w-1/4 z-[240] cursor-pointer" 
             onClick={handleNext}
-            title="Next"
           ></div>
 
-          {/* Card Stack Container */}
           <div className="relative w-full max-w-[340px] md:max-w-[440px] aspect-[4/5] flex items-center justify-center perspective-1000 overflow-visible">
             {[...Array(stackSize)].map((_, idx) => {
               const diff = idx - currentIndex;
-              
-              // Only render immediate neighbors to keep it clean and smooth
               if (Math.abs(diff) > 2) return null;
 
               const isCurrent = idx === currentIndex;
               const isAllCaughtUp = idx === activeCards.length;
               const cardData = isAllCaughtUp ? null : activeCards[idx];
 
-              // Cinematic fanning transition logic
               let zIndex = 100 - Math.abs(diff);
               let opacity = 0;
               let scale = 0.95;
@@ -372,23 +359,15 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
               let blurLevel = isCurrent ? 0 : 4; 
 
               if (isCurrent) {
-                opacity = 1;
-                scale = 1;
-                translateX = 0;
-                translateY = 0;
-                rotateZ = 0;
+                opacity = 1; scale = 1; translateX = 0; translateY = 0; rotateZ = 0;
               } else if (diff > 0) {
                 opacity = Math.max(0, 0.4 - (diff - 1) * 0.3);
                 scale = 0.95 - (diff - 1) * 0.05;
-                translateX = 80 * diff;
-                translateY = 20 * diff; 
-                rotateZ = 10 * diff;    
+                translateX = 80 * diff; translateY = 20 * diff; rotateZ = 10 * diff;    
               } else {
                 opacity = Math.max(0, 0.4 - (Math.abs(diff) - 1) * 0.3);
                 scale = 0.95 - (Math.abs(diff) - 1) * 0.05;
-                translateX = -80 * Math.abs(diff);
-                translateY = 20 * Math.abs(diff);
-                rotateZ = -10 * Math.abs(diff);
+                translateX = -80 * Math.abs(diff); translateY = 20 * Math.abs(diff); rotateZ = -10 * Math.abs(diff);
               }
 
               return (
@@ -396,8 +375,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                   key={idx}
                   className="absolute inset-0 transition-all duration-[800ms] custom-bezier preserve-3d"
                   style={{
-                    zIndex,
-                    opacity,
+                    zIndex, opacity,
                     transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale}) rotateZ(${rotateZ}deg)`,
                     filter: `blur(${blurLevel}px)`,
                     transformOrigin: 'bottom center',
@@ -405,59 +383,38 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                   }}
                 >
                   {isAllCaughtUp ? (
-                    /* Final "All Caught Up" Card */
                     <div className="w-full h-full bg-navy border-2 border-gold/40 rounded-[2.5rem] p-8 md:p-12 flex flex-col items-center justify-center text-center shadow-2xl relative">
                        <div className="w-20 h-20 md:w-28 md:h-28 bg-gold rounded-full flex items-center justify-center mb-8 shadow-2xl">
                           <div className="w-10 h-10 md:w-14 md:h-14 border-4 border-navy rounded-full"></div>
                        </div>
                        <h3 className="text-3xl md:text-5xl font-serif italic text-white mb-6 lowercase">all caught up</h3>
-                       <p className="text-sm md:text-lg font-light text-white/60 mb-10 px-6 leading-relaxed">You've explored all of our current weekly highlights. We hope to see you soon.</p>
-                       <button 
-                        onClick={() => setShowWidget(false)}
-                        className="w-full py-5 bg-gold text-navy rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.2em] shadow-xl hover:bg-white hover:text-navy transition-all duration-500"
-                       >
-                        Explore Newsletter
-                       </button>
+                       <p className="text-sm md:text-lg font-light text-white/60 mb-10 px-6 leading-relaxed">You've explored all of our current weekly highlights.</p>
+                       <button onClick={() => setShowWidget(false)} className="w-full py-5 bg-gold text-navy rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">Explore Newsletter</button>
                     </div>
                   ) : (
-                    /* Interactive Swiping/Flipping Card */
                     <div 
                       className={`w-full h-full relative transition-all duration-[800ms] preserve-3d ${(isCurrent && isFlipped) ? 'rotate-y-180' : ''}`}
                       onClick={handleFlip}
                     >
-                      {/* Front Side */}
                       <div className="absolute inset-0 backface-hidden bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/20 flex flex-col">
                         <div className="h-[65%] relative">
-                           <img src={cardData?.imageUrl} className="w-full h-full object-cover" alt="" />
+                           <img src={cardData?.imageUrl} className="w-full h-full object-cover" alt="" loading="lazy" />
                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60"></div>
                         </div>
                         <div className="h-[35%] p-8 flex flex-col justify-center text-center bg-white">
                            <h3 className="text-2xl md:text-3xl font-serif text-navy italic leading-tight mb-2">{cardData?.title}</h3>
                            <span className="text-[10px] md:text-[11px] font-black tracking-[0.25em] text-gold uppercase mb-4">{cardData?.subtitle}</span>
-                           <div className="flex justify-center items-center gap-2 opacity-30 mt-auto">
-                              <span className="text-[9px] font-black uppercase tracking-widest">Tap to reveal details</span>
-                           </div>
                         </div>
                       </div>
-
-                      {/* Back Side */}
                       <div className="absolute inset-0 backface-hidden rotate-y-180 bg-navy text-white rounded-[2.5rem] p-8 md:p-12 flex flex-col items-center justify-center text-center shadow-2xl border border-gold/30">
                         <h3 className="text-xl md:text-2xl font-serif italic text-gold mb-6">{cardData?.title}</h3>
                         <p className="text-sm md:text-base font-light text-white/80 leading-relaxed mb-10">{cardData?.description}</p>
-                        
-                        {cardData?.ctaUrl && cardData?.ctaLabel && (
-                          <a 
-                            href={cardData.ctaUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full py-5 bg-gold text-navy rounded-full font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs shadow-xl hover:scale-105 transition-transform"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {cardData.ctaLabel}
+                        {cardData?.ctaUrl && (
+                          <a href={cardData.ctaUrl} target="_blank" rel="noopener noreferrer" className="w-full py-5 bg-gold text-navy rounded-full font-bold uppercase tracking-[0.2em] text-[10px]" onClick={(e) => e.stopPropagation()}>
+                            {cardData.ctaLabel || 'Learn More'}
                           </a>
                         )}
-                        
-                        <button className="mt-8 text-[9px] text-white/40 uppercase font-black tracking-widest hover:text-gold transition-colors">Tap to Flip Back</button>
+                        <button className="mt-8 text-[9px] text-white/40 uppercase font-black tracking-widest">Tap to Flip Back</button>
                       </div>
                     </div>
                   )}
@@ -466,7 +423,6 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
             })}
           </div>
 
-          {/* Indicator Dots */}
           <div className="mt-12 flex justify-center gap-3 z-[250]">
             {[...Array(stackSize)].map((_, i) => (
               <button 
@@ -476,32 +432,14 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
               ></button>
             ))}
           </div>
-
-          {/* Navigation Instructions */}
-          <div className="absolute bottom-6 flex justify-between w-full px-12 pointer-events-none opacity-20 text-white text-[9px] font-black uppercase tracking-[0.3em]">
-             <span>← Previous</span>
-             <span>Next →</span>
-          </div>
         </div>
       )}
 
-      {/* Main Guest Sticky Header - Centered Logo */}
+      {/* Main Guest Sticky Header */}
       <div className="bg-navy text-white sticky top-0 z-[100] shadow-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto flex justify-center items-center py-6 px-6 md:px-12 h-16 md:h-24">
-           <a 
-            href={header.linkUrl} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="h-8 md:h-12 flex items-center justify-center transition-transform hover:scale-110"
-           >
-             <img 
-               src={header.logoUrl} 
-               alt="Rixos Logo" 
-               className="h-full w-auto object-contain" 
-               onError={(e) => {
-                 (e.target as HTMLImageElement).src = "https://static.wixstatic.com/shapes/31813a_2928f300b32746d08f4e2ba5ce2e989d.svg";
-               }}
-             />
+           <a href={header.linkUrl} target="_blank" rel="noopener noreferrer" className="h-8 md:h-12 flex items-center justify-center transition-transform hover:scale-110">
+             <img src={header.logoUrl} alt="Rixos Logo" className="h-full w-auto object-contain" />
            </a>
         </div>
       </div>
@@ -513,52 +451,23 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
       <footer className="bg-white pt-24 pb-20 px-6 border-t border-gray-100">
         <div className="max-w-7xl mx-auto text-center">
           <h4 className="text-navy font-bold tracking-[0.4em] uppercase text-xs mb-10">{footer.connectLabel}</h4>
-          
           <div className="flex justify-center items-center gap-6 mb-16">
-            {footer.socialLinks && footer.socialLinks.map((sl) => (
-              <a 
-                key={sl.id} 
-                href={sl.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center transition-all duration-300 hover:border-gold hover:scale-110 group"
-              >
-                {sl.iconUrl ? (
-                  <img 
-                    src={sl.iconUrl} 
-                    alt="Social" 
-                    className="w-5 h-5 object-contain opacity-40 group-hover:opacity-100 transition-opacity" 
-                  />
-                ) : (
-                  <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                )}
+            {footer.socialLinks.map((sl) => (
+              <a key={sl.id} href={sl.url} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center group transition-all">
+                {sl.iconUrl ? <img src={sl.iconUrl} alt="Social" className="w-5 h-5 object-contain opacity-40 group-hover:opacity-100" loading="lazy" /> : <div className="w-2 h-2 bg-gray-200 rounded-full"></div>}
               </a>
             ))}
           </div>
-          
           <div className="flex flex-col items-center gap-8 border-t border-gray-50 pt-16">
-            <button 
-              onClick={() => onSwitchView('admin')}
-              className="text-[9px] font-black tracking-[0.3em] text-gray-300 uppercase hover:text-navy transition-colors flex items-center gap-2 group"
-            >
-              <div className="w-1.5 h-1.5 bg-gray-200 group-hover:bg-gold rounded-full transition-colors"></div>
-              Admin CMS
-            </button>
-            <div className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.4em] opacity-60">
-              {footer.copyrightText}
-            </div>
+            <button onClick={() => onSwitchView('admin')} className="text-[9px] font-black tracking-[0.3em] text-gray-300 uppercase hover:text-navy transition-colors">Admin CMS</button>
+            <div className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.4em] opacity-60">{footer.copyrightText}</div>
           </div>
         </div>
       </footer>
 
       <style>{`
-        @keyframes subtleBounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-        .animate-subtle-bounce {
-          animation: subtleBounce 2.5s infinite ease-in-out;
-        }
+        @keyframes subtleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .animate-subtle-bounce { animation: subtleBounce 2.5s infinite ease-in-out; }
         .perspective-1000 { perspective: 1000px; }
         .preserve-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
