@@ -515,40 +515,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ data, onUpdate, onLogout, onS
             </div>
           </div>
 
-          {/* Button Config Section on Page 1 */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8 overflow-hidden">
-            <div className="bg-navy text-white p-3 -m-6 mb-6 text-[10px] font-bold uppercase tracking-widest">Floating Widget Appearance</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Widget Button Label</label>
-                <input 
-                  value={localData.widgetConfig?.buttonLabel || ''} 
-                  onChange={(e) => updateWidgetConfig({ buttonLabel: e.target.value })} 
-                  className="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-gold outline-none" 
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Widget Button Icon URL</label>
-                <input 
-                  value={localData.widgetConfig?.buttonIconUrl || ''} 
-                  onChange={(e) => updateWidgetConfig({ buttonIconUrl: e.target.value })} 
-                  className="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-gold outline-none" 
-                />
-              </div>
-              <div className="md:col-span-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl mt-2">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-black text-navy uppercase tracking-widest">Enable Bounce Animation</span>
-                </div>
-                <button 
-                  onClick={() => updateWidgetConfig({ enableBounce: !localData.widgetConfig?.enableBounce })}
-                  className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${localData.widgetConfig?.enableBounce ? 'bg-navy text-white' : 'bg-gray-200 text-gray-500'}`}
-                >
-                  {localData.widgetConfig?.enableBounce ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-          </div>
-
           {(localData.sections || []).map((section, index) => renderSectionEditor(section, index))}
           
           <div className="mt-8 bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -604,6 +570,43 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ data, onUpdate, onLogout, onS
             >
               {localData.widgetEnabled ? 'Enabled' : 'Disabled'}
             </button>
+          </div>
+
+          {/* Button Config Section on Page 2 (Widget Management) */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8 overflow-hidden">
+            <div className="bg-navy text-white p-3 -m-6 mb-6 text-[10px] font-bold uppercase tracking-widest">Floating Widget Appearance</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Widget Button Label</label>
+                <input 
+                  value={localData.widgetConfig?.buttonLabel || ''} 
+                  onChange={(e) => updateWidgetConfig({ buttonLabel: e.target.value })} 
+                  className="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-gold outline-none" 
+                  placeholder="e.g. WHAT'S ON"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Widget Button Icon URL</label>
+                <input 
+                  value={localData.widgetConfig?.buttonIconUrl || ''} 
+                  onChange={(e) => updateWidgetConfig({ buttonIconUrl: e.target.value })} 
+                  className="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-gold outline-none" 
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="md:col-span-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl mt-2">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-navy uppercase tracking-widest">Enable Bounce Animation</span>
+                  <p className="text-[9px] text-gray-400">Makes the button gently bounce to attract attention.</p>
+                </div>
+                <button 
+                  onClick={() => updateWidgetConfig({ enableBounce: !localData.widgetConfig?.enableBounce })}
+                  className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${localData.widgetConfig?.enableBounce ? 'bg-navy text-white' : 'bg-gray-200 text-gray-500'}`}
+                >
+                  {localData.widgetConfig?.enableBounce ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-6">
