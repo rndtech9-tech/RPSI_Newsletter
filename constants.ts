@@ -2,6 +2,42 @@
 import { NewsletterData } from './types';
 
 export const INITIAL_DATA: NewsletterData = {
+  widgetEnabled: true,
+  widgetConfig: {
+    buttonLabel: "WHAT'S ON",
+    buttonIconUrl: "https://cdn-icons-png.flaticon.com/512/1041/1041844.png",
+    enableBounce: true
+  },
+  header: {
+    logoUrl: "Diamond_white.png",
+    linkUrl: "https://www.rixos.com/hotel-resort/rixos-premium-saadiyat-island"
+  },
+  widgetCards: [
+    {
+      id: 'wc1',
+      title: "Thanksgiving Made Special",
+      subtitle: "Turkey Buffet, Today at 7 PM",
+      description: "Enjoy a sumptuous dinner at Turquoise Restaurant with traditional trimmings. 7 PM - 11 PM.",
+      imageUrl: "https://images.unsplash.com/photo-1574672280600-4accfa5b6f98?auto=format&fit=crop&q=80&w=600",
+      ctaUrl: "https://wa.me/971500000000",
+      ctaLabel: "Reserve via WhatsApp",
+      startTime: new Date().toISOString(),
+      endTime: new Date(Date.now() + 86400000 * 30).toISOString(),
+      isActive: true
+    },
+    {
+      id: 'wc2',
+      title: "Sunrise Yoga",
+      subtitle: "Beachfront, Tomorrow at 6 AM",
+      description: "Start your day with mindfulness. Meet at the Saadiyat Beach Club entrance.",
+      imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=600",
+      ctaUrl: "https://wa.me/971500000000",
+      ctaLabel: "Inquire Now",
+      startTime: new Date().toISOString(),
+      endTime: new Date(Date.now() + 86400000 * 30).toISOString(),
+      isActive: true
+    }
+  ],
   sections: [
     {
       id: 'sec_hero_1',
@@ -38,7 +74,8 @@ export const INITIAL_DATA: NewsletterData = {
           heading: "aliée",
           description: "See Istanbul through Aliée's eye, the House of Curious Minds, where refinement is not possessed, but lived. The breeze of the Golden Horn carries whispers of history, weaving heritage with the pulse of today.",
           imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
-          ctaUrl: "#"
+          ctaUrl: "#",
+          ctaLabel: "Explore More"
         },
         {
           id: 'fc2',
@@ -46,7 +83,8 @@ export const INITIAL_DATA: NewsletterData = {
           heading: "experience abu dhabi",
           description: "Get ready for the holiday of a lifetime in Abu Dhabi with our hot list of 101 things to do. Whether you're here to soak up the sun, dive into adventure, or just relax with your family.",
           imageUrl: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=800",
-          ctaUrl: "#"
+          ctaUrl: "#",
+          ctaLabel: "Explore More"
         }
       ]
     },
@@ -77,6 +115,7 @@ export const INITIAL_DATA: NewsletterData = {
       content: {
         title: "HELP US BUILD A SCHOOL IN MALAWI",
         heading: "Dubai Cares",
+        headingLogoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e4/Dubai_Cares_Logo.svg",
         description: "Donate at checkout or scan the QR code below to help build a school in Malawi, in collaboration with Dubai Cares.",
         subtext: "Together, we're laying the first brick for brighter futures.",
         imageUrl: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=800",

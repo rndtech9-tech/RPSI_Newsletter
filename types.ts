@@ -13,6 +13,7 @@ export interface FeatureCard {
   description: string;
   imageUrl: string;
   ctaUrl: string;
+  ctaLabel?: string;
 }
 
 export interface SportMatch {
@@ -48,6 +49,30 @@ export interface FooterData {
   copyrightText: string;
 }
 
+export interface HeaderData {
+  logoUrl: string;
+  linkUrl: string;
+}
+
+export interface WidgetCard {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  imageUrl: string;
+  ctaUrl?: string;
+  ctaLabel?: string;
+  startTime: string; // ISO string
+  endTime: string;   // ISO string
+  isActive: boolean;
+}
+
+export interface WidgetConfig {
+  buttonLabel: string;
+  buttonIconUrl: string;
+  enableBounce: boolean;
+}
+
 export type SectionType = 
   | 'hero' 
   | 'welcome' 
@@ -66,6 +91,10 @@ export interface SectionInstance {
 export interface NewsletterData {
   sections: SectionInstance[];
   footer: FooterData;
+  header?: HeaderData;
+  widgetCards?: WidgetCard[];
+  widgetEnabled?: boolean;
+  widgetConfig?: WidgetConfig;
 }
 
 export type PortalView = 'guest' | 'admin';

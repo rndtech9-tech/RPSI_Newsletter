@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from 'react';
-import { NewsletterData, SectionInstance, QuickLink, FeatureCard, EntertainmentKitItem, SportMatch, PortalView } from '../types';
+import React, { useEffect, useState, useRef } from 'react';
+import { NewsletterData, SectionInstance, QuickLink, FeatureCard, EntertainmentKitItem, SportMatch, PortalView, WidgetCard } from '../types';
 
 interface GuestPortalProps {
   data: NewsletterData;
@@ -9,11 +9,66 @@ interface GuestPortalProps {
 
 const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
   const [isVisible, setIsVisible] = useState(false);
-
+  const [showWidget, setShowWidget] = useState(false);
+  const [activeCards, setActiveCards] = useState<WidgetCard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Prevent background scrolling and touch interactions when widget is active
+  useEffect(() => {
+    if (showWidget) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [showWidget]);
+
+  useEffect(() => {
+    if (data.widgetCards) {
+      const now = new Date();
+      const filtered = data.widgetCards.filter(card => {
+        if (!card.isActive) return false;
+        const start = new Date(card.startTime);
+        const end = new Date(card.endTime);
+        return now >= start && now <= end;
+      });
+      setActiveCards(filtered);
+    }
+  }, [data.widgetCards]);
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentIndex < activeCards.length) {
+      setCurrentIndex(prev => prev + 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const handleFlip = () => {
+    // Only flip if it's not the "All Caught Up" card
+    if (currentIndex < activeCards.length) {
+      setIsFlipped(!isFlipped);
+    }
+  };
 
   if (!data || !data.sections) {
     return (
@@ -37,7 +92,7 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
             >
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/50"></div>
               <div className={`relative z-10 px-4 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-                <div className="inline-block bg-navy/60 backdrop-blur-sm px-6 py-1.5 mb-4 rounded-sm">
+                <div className="inline-block px-6 py-1.5 mb-4">
                   <h2 className="text-xl md:text-2xl font-light tracking-[0.4em] opacity-95 uppercase">{content.title}</h2>
                 </div>
                 <h1 className="text-7xl md:text-9xl font-serif italic font-medium lowercase tracking-tight leading-none drop-shadow-2xl">
@@ -51,10 +106,10 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
       case 'welcome':
         return (
           <div key={id} className="max-w-7xl mx-auto py-8 text-center px-4 mb-8">
-            <p className="text-[10px] md:text-sm font-semibold tracking-[0.3em] text-gray-400 uppercase max-w-2xl mx-auto leading-relaxed">
+            <p className="text-[11px] md:text-sm font-semibold tracking-[0.3em] text-gray-400 uppercase leading-relaxed max-w-4xl mx-auto">
               {content.text}
             </p>
-            <div className="w-16 h-[1px] bg-gold mx-auto mt-4"></div>
+            <div className="w-16 h-[1px] bg-gold mx-auto mt-6"></div>
           </div>
         );
 
@@ -88,16 +143,16 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                     <div className="w-full aspect-[4/3] rounded-[2rem] overflow-hidden mb-8 shadow-inner">
                       <img src={card.imageUrl} alt={card.heading} className="w-full h-full object-cover" />
                     </div>
-                    <h2 className="text-5xl md:text-7xl font-serif italic text-navy mb-4 lowercase tracking-tight leading-none">{card.heading}</h2>
+                    <h2 className="text-3xl md:text-5xl font-serif italic text-navy mb-4 lowercase tracking-tight leading-none whitespace-nowrap">{card.heading}</h2>
                     <h3 className="text-[9px] font-bold tracking-[0.3em] text-gold mb-8 uppercase">{card.title}</h3>
                     <p className="text-xs md:text-base leading-relaxed text-gray-400 mb-10 font-light max-w-sm px-4">{card.description}</p>
                     <a 
                       href={card.ctaUrl} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="mt-auto inline-block px-12 py-4 border border-gold text-gold bg-transparent rounded-full text-[10px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20"
+                      className="mt-auto inline-block px-8 md:px-12 py-3.5 md:py-4 border border-gold text-gold bg-transparent rounded-full text-[9px] md:text-[10px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20"
                     >
-                      Explore More
+                      {card.ctaLabel || 'Explore More'}
                     </a>
                   </div>
                 ))}
@@ -203,21 +258,27 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
                 <div className="absolute inset-0 bg-gradient-to-r from-navy/30 to-transparent"></div>
               </div>
               <div className="lg:w-1/2 p-10 md:p-16 flex flex-col justify-center text-white">
-                <h4 className="text-[10px] font-black tracking-[0.5em] text-gold uppercase mb-6">{content.heading}</h4>
+                {content.headingLogoUrl ? (
+                  <img src={content.headingLogoUrl} alt={content.heading} className="h-10 md:h-14 w-auto object-contain mb-6 opacity-90" />
+                ) : (
+                  <h4 className="text-[10px] font-black tracking-[0.5em] text-gold uppercase mb-6">{content.heading}</h4>
+                )}
                 <h3 className="text-3xl md:text-5xl font-serif mb-8 leading-tight italic">{content.title}</h3>
                 <p className="text-base text-white/70 mb-6 font-light leading-relaxed">{content.description}</p>
                 {content.subtext && (
                    <p className="text-xs italic text-gold/80 mb-10 font-serif leading-relaxed opacity-90">{content.subtext}</p>
                 )}
                 <div className="flex flex-col gap-10">
-                   <a 
-                    href={content.ctaUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-max px-14 py-5 border border-gold text-gold bg-transparent rounded-full text-[11px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20"
-                   >
-                    {content.ctaLabel}
-                   </a>
+                   {content.ctaUrl && content.ctaLabel && (
+                     <a 
+                      href={content.ctaUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-full md:w-max px-8 md:px-14 py-4 md:py-5 border border-gold text-gold bg-transparent rounded-full text-[10px] md:text-[11px] font-bold tracking-[0.35em] uppercase transition-all duration-500 hover:bg-gold hover:text-white hover:scale-105 hover:shadow-2xl hover:shadow-gold/20 text-center"
+                     >
+                      {content.ctaLabel}
+                     </a>
+                   )}
                    {content.footerText && (
                      <div className="pt-8 border-t border-white/10">
                         <p className="text-[9px] text-white/40 leading-relaxed font-medium uppercase tracking-widest">{content.footerText}</p>
@@ -235,20 +296,207 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
   };
 
   const footer = data.footer || { connectLabel: 'CONNECT', socialLinks: [], copyrightText: '© 2025 RIXOS' };
+  const header = data.header || { logoUrl: 'Diamond_white.png', linkUrl: 'https://www.rixos.com/hotel-resort/rixos-premium-saadiyat-island' };
+
+  // Combine active offers with the final "All Caught Up" card
+  const stackSize = activeCards.length + 1;
+
+  const widgetConfig = data.widgetConfig || { buttonLabel: "WHAT'S ON", buttonIconUrl: "", enableBounce: true };
 
   return (
-    <div className="w-full bg-white shadow-2xl min-h-screen pb-20 overflow-x-hidden">
-      <div className="bg-navy text-white">
-        <div className="max-w-7xl mx-auto flex justify-end items-center py-6 px-6 md:px-12 h-16 md:h-24">
+    <div className="w-full bg-white shadow-2xl min-h-screen pb-20 overflow-x-hidden relative">
+      {/* Floating Pill Button Widget */}
+      {data.widgetEnabled && activeCards.length > 0 && (
+        <button 
+          onClick={() => { setShowWidget(true); setCurrentIndex(0); }}
+          className={`fixed bottom-8 right-8 md:bottom-12 md:right-12 z-[100] h-12 md:h-16 w-auto px-6 md:px-8 bg-navy border-2 border-gold rounded-full shadow-[0_15px_45px_rgba(0,33,71,0.25)] flex items-center gap-3 md:gap-4 transition-all hover:scale-105 active:scale-95 group ${widgetConfig.enableBounce ? 'animate-subtle-bounce' : ''}`}
+        >
+          {widgetConfig.buttonIconUrl && (
+            <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center">
+              <img 
+                src={widgetConfig.buttonIconUrl} 
+                alt="" 
+                className="w-full h-full object-contain brightness-0 invert" 
+              />
+            </div>
+          )}
+          <span className="text-[10px] md:text-[11px] font-black tracking-[0.25em] text-white uppercase whitespace-nowrap">
+            {widgetConfig.buttonLabel || "WHAT'S ON"}
+          </span>
+          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
+        </button>
+      )}
+
+      {/* Centered Overlay Widget */}
+      {showWidget && (
+        <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 md:p-10 bg-navy/95 backdrop-blur-3xl animate-in fade-in duration-500">
+          {/* Close button */}
+          <button 
+            onClick={() => setShowWidget(false)}
+            className="absolute top-6 right-6 text-white/40 text-2xl hover:text-white transition-colors p-4 z-[250]"
+          >
+            ✕
+          </button>
+
+          {/* Navigation tap zones for left/right switching */}
+          <div 
+            className="absolute inset-y-0 left-0 w-1/4 z-[240] cursor-pointer" 
+            onClick={handlePrev}
+            title="Previous"
+          ></div>
+          <div 
+            className="absolute inset-y-0 right-0 w-1/4 z-[240] cursor-pointer" 
+            onClick={handleNext}
+            title="Next"
+          ></div>
+
+          {/* Card Stack Container */}
+          <div className="relative w-full max-w-[340px] md:max-w-[440px] aspect-[4/5] flex items-center justify-center perspective-1000 overflow-visible">
+            {[...Array(stackSize)].map((_, idx) => {
+              const diff = idx - currentIndex;
+              
+              // Only render immediate neighbors to keep it clean and smooth
+              if (Math.abs(diff) > 2) return null;
+
+              const isCurrent = idx === currentIndex;
+              const isAllCaughtUp = idx === activeCards.length;
+              const cardData = isAllCaughtUp ? null : activeCards[idx];
+
+              // Cinematic fanning transition logic
+              let zIndex = 100 - Math.abs(diff);
+              let opacity = 0;
+              let scale = 0.95;
+              let translateX = 0;
+              let translateY = 0;
+              let rotateZ = 0;
+              let blurLevel = isCurrent ? 0 : 4; 
+
+              if (isCurrent) {
+                opacity = 1;
+                scale = 1;
+                translateX = 0;
+                translateY = 0;
+                rotateZ = 0;
+              } else if (diff > 0) {
+                opacity = Math.max(0, 0.4 - (diff - 1) * 0.3);
+                scale = 0.95 - (diff - 1) * 0.05;
+                translateX = 80 * diff;
+                translateY = 20 * diff; 
+                rotateZ = 10 * diff;    
+              } else {
+                opacity = Math.max(0, 0.4 - (Math.abs(diff) - 1) * 0.3);
+                scale = 0.95 - (Math.abs(diff) - 1) * 0.05;
+                translateX = -80 * Math.abs(diff);
+                translateY = 20 * Math.abs(diff);
+                rotateZ = -10 * Math.abs(diff);
+              }
+
+              return (
+                <div 
+                  key={idx}
+                  className="absolute inset-0 transition-all duration-[800ms] custom-bezier preserve-3d"
+                  style={{
+                    zIndex,
+                    opacity,
+                    transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale}) rotateZ(${rotateZ}deg)`,
+                    filter: `blur(${blurLevel}px)`,
+                    transformOrigin: 'bottom center',
+                    pointerEvents: isCurrent ? 'auto' : 'none'
+                  }}
+                >
+                  {isAllCaughtUp ? (
+                    /* Final "All Caught Up" Card */
+                    <div className="w-full h-full bg-navy border-2 border-gold/40 rounded-[2.5rem] p-8 md:p-12 flex flex-col items-center justify-center text-center shadow-2xl relative">
+                       <div className="w-20 h-20 md:w-28 md:h-28 bg-gold rounded-full flex items-center justify-center mb-8 shadow-2xl">
+                          <div className="w-10 h-10 md:w-14 md:h-14 border-4 border-navy rounded-full"></div>
+                       </div>
+                       <h3 className="text-3xl md:text-5xl font-serif italic text-white mb-6 lowercase">all caught up</h3>
+                       <p className="text-sm md:text-lg font-light text-white/60 mb-10 px-6 leading-relaxed">You've explored all of our current weekly highlights. We hope to see you soon.</p>
+                       <button 
+                        onClick={() => setShowWidget(false)}
+                        className="w-full py-5 bg-gold text-navy rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.2em] shadow-xl hover:bg-white hover:text-navy transition-all duration-500"
+                       >
+                        Explore Newsletter
+                       </button>
+                    </div>
+                  ) : (
+                    /* Interactive Swiping/Flipping Card */
+                    <div 
+                      className={`w-full h-full relative transition-all duration-[800ms] preserve-3d ${(isCurrent && isFlipped) ? 'rotate-y-180' : ''}`}
+                      onClick={handleFlip}
+                    >
+                      {/* Front Side */}
+                      <div className="absolute inset-0 backface-hidden bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/20 flex flex-col">
+                        <div className="h-[65%] relative">
+                           <img src={cardData?.imageUrl} className="w-full h-full object-cover" alt="" />
+                           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60"></div>
+                        </div>
+                        <div className="h-[35%] p-8 flex flex-col justify-center text-center bg-white">
+                           <h3 className="text-2xl md:text-3xl font-serif text-navy italic leading-tight mb-2">{cardData?.title}</h3>
+                           <span className="text-[10px] md:text-[11px] font-black tracking-[0.25em] text-gold uppercase mb-4">{cardData?.subtitle}</span>
+                           <div className="flex justify-center items-center gap-2 opacity-30 mt-auto">
+                              <span className="text-[9px] font-black uppercase tracking-widest">Tap to reveal details</span>
+                           </div>
+                        </div>
+                      </div>
+
+                      {/* Back Side */}
+                      <div className="absolute inset-0 backface-hidden rotate-y-180 bg-navy text-white rounded-[2.5rem] p-8 md:p-12 flex flex-col items-center justify-center text-center shadow-2xl border border-gold/30">
+                        <h3 className="text-xl md:text-2xl font-serif italic text-gold mb-6">{cardData?.title}</h3>
+                        <p className="text-sm md:text-base font-light text-white/80 leading-relaxed mb-10">{cardData?.description}</p>
+                        
+                        {cardData?.ctaUrl && cardData?.ctaLabel && (
+                          <a 
+                            href={cardData.ctaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-5 bg-gold text-navy rounded-full font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs shadow-xl hover:scale-105 transition-transform"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {cardData.ctaLabel}
+                          </a>
+                        )}
+                        
+                        <button className="mt-8 text-[9px] text-white/40 uppercase font-black tracking-widest hover:text-gold transition-colors">Tap to Flip Back</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Indicator Dots */}
+          <div className="mt-12 flex justify-center gap-3 z-[250]">
+            {[...Array(stackSize)].map((_, i) => (
+              <button 
+                key={i} 
+                onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); setIsFlipped(false); }}
+                className={`h-1.5 rounded-full transition-all duration-700 ${i === currentIndex ? 'w-10 bg-gold' : 'w-2 bg-white/20'}`}
+              ></button>
+            ))}
+          </div>
+
+          {/* Navigation Instructions */}
+          <div className="absolute bottom-6 flex justify-between w-full px-12 pointer-events-none opacity-20 text-white text-[9px] font-black uppercase tracking-[0.3em]">
+             <span>← Previous</span>
+             <span>Next →</span>
+          </div>
+        </div>
+      )}
+
+      {/* Main Guest Sticky Header - Centered Logo */}
+      <div className="bg-navy text-white sticky top-0 z-[100] shadow-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto flex justify-center items-center py-6 px-6 md:px-12 h-16 md:h-24">
            <a 
-            href="https://www.rixos.com/hotel-resort/rixos-premium-saadiyat-island" 
+            href={header.linkUrl} 
             target="_blank" 
             rel="noopener noreferrer" 
             className="h-8 md:h-12 flex items-center justify-center transition-transform hover:scale-110"
            >
              <img 
-               src="Diamond_white.png" 
-               alt="Rixos Diamond" 
+               src={header.logoUrl} 
+               alt="Rixos Logo" 
                className="h-full w-auto object-contain" 
                onError={(e) => {
                  (e.target as HTMLImageElement).src = "https://static.wixstatic.com/shapes/31813a_2928f300b32746d08f4e2ba5ce2e989d.svg";
@@ -302,6 +550,21 @@ const GuestPortal: React.FC<GuestPortalProps> = ({ data, onSwitchView }) => {
           </div>
         </div>
       </footer>
+
+      <style>{`
+        @keyframes subtleBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        .animate-subtle-bounce {
+          animation: subtleBounce 2.5s infinite ease-in-out;
+        }
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .custom-bezier { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+      `}</style>
     </div>
   );
 };
